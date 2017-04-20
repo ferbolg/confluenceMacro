@@ -78,8 +78,14 @@ public class helloworld implements Macro {
                 output = output + "<h1>" + page.getTitle() + "</h1>";
                 //How to get GOAL 1 page content
                 //page.bodyContents.get(0).getContent().getBodyAsString();
+                output = output + "<h1>Program pages for " + page.getTitle() + "</h1>";
                 String content = page.getBodyContents().get(0).getContent().getBodyAsString();
-                String expression = "//structured-macro[@name=\"details\"]//table/tbody/tr";
+             //   String expression = "//structured-macro[@name=\"details\"]//table/tbody//tr//td/
+//                String expression = "//ac:structured-macro[@ac:name=\"details\"]//ac:reach-text-body/text()";
+               // String expression = "//p[1][text()]";
+                String expression = "//structured-macro//link//page[@content-title]/@content-title";
+
+
                // String parsed = parser.parse(content,expression);
                 String parsed = parser.parseWithCleaner(content,expression);
 
