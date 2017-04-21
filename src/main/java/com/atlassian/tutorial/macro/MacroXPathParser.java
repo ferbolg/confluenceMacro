@@ -1,9 +1,6 @@
 package com.atlassian.tutorial.macro;
 
-import org.htmlcleaner.CleanerProperties;
-import org.htmlcleaner.DomSerializer;
-import org.htmlcleaner.HtmlCleaner;
-import org.htmlcleaner.TagNode;
+import org.htmlcleaner.*;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -17,6 +14,8 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -40,7 +39,7 @@ public class MacroXPathParser {
 
     }
 
-    String parse(String contents, String expression) {
+    public String parse(String contents, String expression) {
         Document htmlDocument = null;
         try {
             htmlDocument = builder.parse(new ByteArrayInputStream(contents.getBytes()));
@@ -61,7 +60,7 @@ public class MacroXPathParser {
         return str;
     }
 
-    String parseWithCleaner(String contents, String expression) {
+    public String parseWithCleaner(String contents, String expression) {
 
 //        TagNode tagNode = new HtmlCleaner().clean(
 //                "<div><table><td id='1234 foo 5678'>Hello</td>");
@@ -112,7 +111,41 @@ public class MacroXPathParser {
         } catch (XPathExpressionException e) {
             e.printStackTrace();
         }
+
+
+        TagNode[] elementsHavingAttribute = tagNode.getElementsHavingAttribute("ri:content-title", true);
+        List<String> programNames = new ArrayList<String>();
+        for (TagNode node : elementsHavingAttribute) {
+//            try {
+//                node.evaluateXPath("//*[@content-title]");
+//            } catch (XPatherException e) {
+//                e.printStackTrace();
+//            }
+            programNames.add(node.getAttributeByName("ri:content-title").toString());
+        }
+
+
+        Object[] selectedPrograms = null;
+        try {
+            selectedPrograms = tagNode.evaluateXPath("//*[@content-title]");
+        } catch (XPatherException e) {
+            e.printStackTrace();
+        }
         System.out.println(str);
         return str;
+    }
+
+    public List<String> findProgramsForGoal(String contents) {
+
+        TagNode tagNode = new HtmlCleaner().clean(contents);
+
+        TagNode[] elementsHavingAttribute = tagNode.getElementsHavingAttribute("ri:content-title", true);
+        List<String> programNames = new ArrayList<String>();
+        for (TagNode node : elementsHavingAttribute) {
+            programNames.add(node.getAttributeByName("ri:content-title").toString());
+        }
+
+        System.out.println(programNames);
+        return programNames;
     }
 }

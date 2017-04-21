@@ -83,11 +83,19 @@ public class helloworld implements Macro {
              //   String expression = "//structured-macro[@name=\"details\"]//table/tbody//tr//td/
 //                String expression = "//ac:structured-macro[@ac:name=\"details\"]//ac:reach-text-body/text()";
                // String expression = "//p[1][text()]";
+
+                //Working Xpath expression to get title for one programm
                 String expression = "//structured-macro//link//page[@content-title]/@content-title";
 
 
                // String parsed = parser.parse(content,expression);
                 String parsed = parser.parseWithCleaner(content,expression);
+
+                List<String> programsForGoal = parser.findProgramsForGoal(content);
+
+                for (String programName: programsForGoal){
+                    output = output + "<h1>" + programName + "</h1>";
+                }
 
                 output = output + "<h1>" + parsed + "</h1>";
 
