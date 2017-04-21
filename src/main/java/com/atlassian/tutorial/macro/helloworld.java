@@ -8,6 +8,7 @@ import com.atlassian.confluence.macro.MacroExecutionException;
 
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -72,10 +73,13 @@ public class helloworld implements Macro {
 
         // Print out only goal pages
         output = output + "<h1>GOAL Pages in TestSpace </h1>";
+
+        List<Page> goalPages = new ArrayList<Page>();
         for (Page page: PagesInTestSpace) {
 
             if (page.getLabels().contains(goal)){
                 output = output + "<h1>" + page.getTitle() + "</h1>";
+                goalPages.add(page);
                 //How to get GOAL 1 page content
                 //page.bodyContents.get(0).getContent().getBodyAsString();
                 output = output + "<h1>Program pages for " + page.getTitle() + "</h1>";
@@ -87,8 +91,6 @@ public class helloworld implements Macro {
                 //Working Xpath expression to get title for one programm
                 String expression = "//structured-macro//link//page[@content-title]/@content-title";
 
-
-               // String parsed = parser.parse(content,expression);
                 String parsed = parser.parseWithCleaner(content,expression);
 
                 List<String> programsForGoal = parser.findProgramsForGoal(content);
@@ -117,6 +119,22 @@ public class helloworld implements Macro {
 
         output = output + "</div>" + "</div>";
 
+        output = output + "<table>" +
+                "<tr><th>Goals</th><th>Programs</th></tr>";
+        for (Page goalIterator: goalPages) {
+            output = output + "<tr>";
+            output = output + "<td>" + goalIterator.getTitle() + "</td>";
+            String content = goalIterator.getBodyContents().get(0).getContent().getBodyAsString();
+            List<String> programsForGoal = parser.findProgramsForGoal(content);
+            output = output + "<td>" + programsForGoal.toString() + "</td>";
+            output = output + "</tr>";
+
+        }
+
+        output = output + "</table>";
+
+
+        // Return all formed html content for macro
         return output;
     }
 
