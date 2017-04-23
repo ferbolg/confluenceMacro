@@ -41,11 +41,9 @@ public class helloworld implements Macro {
 
     public String execute(Map<String, String> map, String s, ConversionContext conversionContext) throws MacroExecutionException {
 
-
         pageBuilderService.assembler().resources().requireWebResource("com.atlassian.tutorial.myConfluenceMacro:myConfluenceMacro-resources");
 
-
-        PageManager pageManager = (PageManager)ContainerManager.getComponent("pageManager");
+        PageManager pageManager = (PageManager) ContainerManager.getComponent("pageManager");
 
         List<Space> allSpaces = spaceManager.getAllSpaces();
 
@@ -57,17 +55,6 @@ public class helloworld implements Macro {
         String output = "<div class =\"helloworld\">";
         output = output + "<div class = \"" + map.get("Color") + "\">";
 
-//
-//        if (map.get("Name") != null) {
-//            output = output + ("<h1>Hello " + map.get("Name") + "!</h1>");
-//        } else {
-//            output = output + "<h1>Hello World!<h1>";
-//        }
-//
-//        for (Space space: allSpaces) {
-//            output = output + "<h1>" + space.getName() + "</h1>";
-//        }
-
         Label goal = new Label("goal");
         output = output + "<h1>Pages in TestSpace </h1>";
 
@@ -75,27 +62,27 @@ public class helloworld implements Macro {
         output = output + "<h1>GOAL Pages in TestSpace </h1>";
 
         List<Page> goalPages = new ArrayList<Page>();
-        for (Page page: PagesInTestSpace) {
+        for (Page page : PagesInTestSpace) {
 
-            if (page.getLabels().contains(goal)){
+            if (page.getLabels().contains(goal)) {
                 output = output + "<h1>" + page.getTitle() + "</h1>";
                 goalPages.add(page);
                 //How to get GOAL 1 page content
                 //page.bodyContents.get(0).getContent().getBodyAsString();
                 output = output + "<h1>Program pages for " + page.getTitle() + "</h1>";
                 String content = page.getBodyContents().get(0).getContent().getBodyAsString();
-             //   String expression = "//structured-macro[@name=\"details\"]//table/tbody//tr//td/
+                //   String expression = "//structured-macro[@name=\"details\"]//table/tbody//tr//td/
 //                String expression = "//ac:structured-macro[@ac:name=\"details\"]//ac:reach-text-body/text()";
-               // String expression = "//p[1][text()]";
+                // String expression = "//p[1][text()]";
 
                 //Working Xpath expression to get title for one programm
                 String expression = "//structured-macro//link//page[@content-title]/@content-title";
 
-                String parsed = parser.parseWithCleaner(content,expression);
+                String parsed = parser.parseWithCleaner(content, expression);
 
                 List<String> programsForGoal = parser.findProgramsForGoal(content);
 
-                for (String programName: programsForGoal){
+                for (String programName : programsForGoal) {
                     output = output + "<h1>" + programName + "</h1>";
                 }
 
@@ -105,12 +92,21 @@ public class helloworld implements Macro {
         }
 
         Label programm = new Label("program");
+        List<Page> programPages = new ArrayList<Page>();
 
         output = output + "<h1>Programm Pages in TestSpace </h1>";
-        for (Page page: PagesInTestSpace) {
+        for (Page page : PagesInTestSpace) {
 
-            if (page.getLabels().contains(programm)){
+            if (page.getLabels().contains(programm)) {
                 output = output + "<h1>" + page.getTitle() + "</h1>";
+                programPages.add(page);
+                output = output + "<h1>" + "Projects for program" + "</h1>";
+                String programPageContent = page.getBodyContents().get(0).getContent().getBodyAsString();
+                List<String> projectsForProgram = parser.findProjectsForProgram(programPageContent);
+
+                for (String projectTitle: projectsForProgram) {
+                    output = output + "<h1>" + projectTitle + "</h1>";
+                }
 //                List<BodyContent> bodyContents = page.getBodyContents();
 //                BodyContent bodyContent = bodyContents.get(0);
 //                bodyContent.getContent();
@@ -121,7 +117,7 @@ public class helloworld implements Macro {
 
         output = output + "<table>" +
                 "<tr><th>Goals</th><th>Programs</th></tr>";
-        for (Page goalIterator: goalPages) {
+        for (Page goalIterator : goalPages) {
             output = output + "<tr>";
             output = output + "<td>" + goalIterator.getTitle() + "</td>";
             String content = goalIterator.getBodyContents().get(0).getContent().getBodyAsString();
@@ -138,7 +134,11 @@ public class helloworld implements Macro {
         return output;
     }
 
-    public BodyType getBodyType() { return BodyType.NONE; }
+    public BodyType getBodyType() {
+        return BodyType.NONE;
+    }
 
-    public OutputType getOutputType() { return OutputType.BLOCK; }
+    public OutputType getOutputType() {
+        return OutputType.BLOCK;
+    }
 }

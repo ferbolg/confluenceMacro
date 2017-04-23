@@ -148,4 +148,18 @@ public class MacroXPathParser {
         System.out.println(programNames);
         return programNames;
     }
+
+    public List<String> findProjectsForProgram(String contents) {
+
+        TagNode tagNode = new HtmlCleaner().clean(contents);
+
+        TagNode[] elementsHavingAttribute = tagNode.getElementsHavingAttribute("ri:content-title", true);
+        List<String> projectNames = new ArrayList<String>();
+        for (TagNode node : elementsHavingAttribute) {
+            projectNames.add(node.getAttributeByName("ri:content-title").toString());
+        }
+
+        System.out.println(projectNames);
+        return projectNames;
+    }
 }
