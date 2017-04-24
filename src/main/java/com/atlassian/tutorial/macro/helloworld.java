@@ -1,16 +1,11 @@
 package com.atlassian.tutorial.macro;
 
 import com.atlassian.confluence.content.render.xhtml.ConversionContext;
-import com.atlassian.confluence.core.BodyContent;
 import com.atlassian.confluence.labels.Label;
 import com.atlassian.confluence.macro.Macro;
 import com.atlassian.confluence.macro.MacroExecutionException;
 
-import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.atlassian.confluence.pages.Page;
 import com.atlassian.confluence.pages.PageManager;
@@ -21,8 +16,6 @@ import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.xml.parsers.DocumentBuilder;
 
 @Scanned
 public class helloworld implements Macro {
@@ -40,98 +33,9 @@ public class helloworld implements Macro {
 
 
     public String execute(Map<String, String> map, String s, ConversionContext conversionContext) throws MacroExecutionException {
-
         pageBuilderService.assembler().resources().requireWebResource("com.atlassian.tutorial.myConfluenceMacro:myConfluenceMacro-resources");
-
-        PageManager pageManager = (PageManager) ContainerManager.getComponent("pageManager");
-
-        List<Space> allSpaces = spaceManager.getAllSpaces();
-
-        Space TEST_SPACE = spaceManager.getSpace(SPACE_KEY);
-
-        List<Page> PagesInTestSpace = pageManager.getPages(TEST_SPACE, false);
-
-
-        String output = "<div class =\"helloworld\">";
-        output = output + "<div class = \"" + map.get("Color") + "\">";
-
-        Label goal = new Label("goal");
-        output = output + "<h1>Pages in TestSpace </h1>";
-
-        // Print out only goal pages
-        output = output + "<h1>GOAL Pages in TestSpace </h1>";
-
-        List<Page> goalPages = new ArrayList<Page>();
-        for (Page page : PagesInTestSpace) {
-
-            if (page.getLabels().contains(goal)) {
-                output = output + "<h1>" + page.getTitle() + "</h1>";
-                goalPages.add(page);
-                //How to get GOAL 1 page content
-                //page.bodyContents.get(0).getContent().getBodyAsString();
-                output = output + "<h1>Program pages for " + page.getTitle() + "</h1>";
-                String content = page.getBodyContents().get(0).getContent().getBodyAsString();
-                //   String expression = "//structured-macro[@name=\"details\"]//table/tbody//tr//td/
-//                String expression = "//ac:structured-macro[@ac:name=\"details\"]//ac:reach-text-body/text()";
-                // String expression = "//p[1][text()]";
-
-                //Working Xpath expression to get title for one programm
-                String expression = "//structured-macro//link//page[@content-title]/@content-title";
-
-                String parsed = parser.parseWithCleaner(content, expression);
-
-                List<String> programsForGoal = parser.findProgramsForGoal(content);
-
-                for (String programName : programsForGoal) {
-                    output = output + "<h1>" + programName + "</h1>";
-                }
-
-                output = output + "<h1>" + parsed + "</h1>";
-
-            }
-        }
-
-        Label programm = new Label("program");
-        List<Page> programPages = new ArrayList<Page>();
-
-        output = output + "<h1>Programm Pages in TestSpace </h1>";
-        for (Page page : PagesInTestSpace) {
-
-            if (page.getLabels().contains(programm)) {
-                output = output + "<h1>" + page.getTitle() + "</h1>";
-                programPages.add(page);
-                output = output + "<h1>" + "Projects for program" + "</h1>";
-                String programPageContent = page.getBodyContents().get(0).getContent().getBodyAsString();
-                List<String> projectsForProgram = parser.findProjectsForProgram(programPageContent);
-
-                for (String projectTitle: projectsForProgram) {
-                    output = output + "<h1>" + projectTitle + "</h1>";
-                }
-//                List<BodyContent> bodyContents = page.getBodyContents();
-//                BodyContent bodyContent = bodyContents.get(0);
-//                bodyContent.getContent();
-            }
-        }
-
-        output = output + "</div>" + "</div>";
-
-        output = output + "<table>" +
-                "<tr><th>Goals</th><th>Programs</th></tr>";
-        for (Page goalIterator : goalPages) {
-            output = output + "<tr>";
-            output = output + "<td>" + goalIterator.getTitle() + "</td>";
-            String content = goalIterator.getBodyContents().get(0).getContent().getBodyAsString();
-            List<String> programsForGoal = parser.findProgramsForGoal(content);
-            output = output + "<td>" + programsForGoal.toString() + "</td>";
-            output = output + "</tr>";
-
-        }
-
-        output = output + "</table>";
-
-
-        // Return all formed html content for macro
-        return output;
+        //return generateSimpleHtmlTable();
+        return generateTableWithDivs();
     }
 
     public BodyType getBodyType() {
@@ -140,5 +44,240 @@ public class helloworld implements Macro {
 
     public OutputType getOutputType() {
         return OutputType.BLOCK;
+    }
+
+    public String generateSimpleHtmlTable() {
+
+        StringBuilder builder = new StringBuilder();
+
+        PageManager pageManager = (PageManager) ContainerManager.getComponent("pageManager");
+
+        Space TEST_SPACE = spaceManager.getSpace(SPACE_KEY);
+
+        List<Page> PagesInTestSpace = pageManager.getPages(TEST_SPACE, false);
+
+        Label goal = new Label("goal");
+        Label program = new Label("program");
+
+        List<Page> goalPages = new ArrayList<Page>();
+        List<Page> programPages = new ArrayList<Page>();
+        for (Page page : PagesInTestSpace) {
+
+            if (page.getLabels().contains(goal)) {
+                goalPages.add(page);
+            }
+            if (page.getLabels().contains(program)) {
+                programPages.add(page);
+            }
+
+        }
+
+        HashMap<String, Page> titleToProgram = new LinkedHashMap<String, Page>();
+        for (Page programPage : programPages) {
+            titleToProgram.put(programPage.getTitle(), programPage);
+        }
+
+        builder.append("<table>");
+        builder.append("<tr><th>Goals</th><th>Programs</th><th>Projects</th></tr>");
+        for (Page goalIterator : goalPages) {
+            String content = goalIterator.getBodyContents().get(0).getContent().getBodyAsString();
+            List<String> programsForGoal = parser.findProgramsForGoal(content);
+            //Draw table for only existing programs for goal
+            if (!programsForGoal.isEmpty()) {
+                for (String programTitleIterator : programsForGoal) {
+
+                    Page programPage = titleToProgram.get(programTitleIterator);
+                    List<String> projectTitlesForProgram = parser.findProjectsForProgram(programPage.getBodyContents().get(0).getContent().getBodyAsString());
+                    System.out.println("Project titles for program: " + projectTitlesForProgram);
+                    //Draw table for only existing projects for Program
+                    if (!projectTitlesForProgram.isEmpty()) {
+                        for (String projectTitleForProgramIterator : projectTitlesForProgram) {
+                            builder.append("<tr>");
+                            builder.append("<td>" + goalIterator.getTitle() + "</td>");
+                            builder.append("<td>" + programTitleIterator + "</td>");
+                            builder.append("<td>" + projectTitleForProgramIterator + "</td>");
+                            builder.append("</tr>");
+                        }
+                    } else {
+                        builder.append("<tr>");
+                        builder.append("<td>" + goalIterator.getTitle() + "</td>");
+                        builder.append("<td>" + programTitleIterator + "</td>");
+                        builder.append("<td>" + "</td>");
+                        builder.append("</tr>");
+                    }
+                }
+            }
+        }
+
+        builder.append("</table>");
+
+        return builder.toString();
+    }
+
+    public String generateTable2() {
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("<div class=\"container-fluid\" " +
+                "  <div class=\"table\"> \n " +
+                "  <div class=\"table-row header\">\n" +
+                "    <div class=\"column goals\">Goals</div>\n" +
+                "    <div class=\"column programs\">Programs</div>\n" +
+                "    <div class=\"column projects\">Projects</div>\n" +
+                "    <div class=\"column objectives\">Objectives</div>\n" +
+                "    <div class=\"column outcome\">Outcome</div>\n" +
+                "    <div class=\"column outcome\">Owner</div>\n" +
+                "    <div class=\"column deadline\">Deadline</div>\n" +
+                "    <div class=\"column missed\">Missed deadlines</div>\n" +
+                "    <div class=\"column actions\">Dependency and Actions</div>\n" +
+                "  </div>\n");
+
+        builder.append("<div class=\"table-row\">\n" +
+                "    <div class=\"column goals\">Protect the GM</div>\n" +
+                "    <div class=\"column programs\"></div>\n" +
+                "    <div class=\"column projects\"></div>\n" +
+                "    <div class=\"column objectives\"></div>\n" +
+                "    <div class=\"column outcome\"></div>\n" +
+                "    <div class=\"column outcome\"></div>\n" +
+                "    <div class=\"column deadline\"></div>\n" +
+                "    <div class=\"column missed\"></div>\n" +
+                "    <div class=\"column actions\"></div>\n" +
+                "  </div>\n" +
+                "    \n" +
+                "  <div class=\"table-row\">\n" +
+                "    <div class=\"column goals\"></div>\n" +
+                "    <div class=\"column programs\">Technology Strategy</div>\n" +
+                "    <div class=\"column projects\"></div>\n" +
+                "    <div class=\"column objectives\"></div>\n" +
+                "    <div class=\"column outcome\"></div>\n" +
+                "    <div class=\"column outcome\"></div>\n" +
+                "    <div class=\"column deadline\"></div>\n" +
+                "    <div class=\"column missed\"></div>\n" +
+                "    <div class=\"column actions\"></div>\n" +
+                "  </div>\n" +
+                "    \n" +
+                "  <div class=\"table-row\">\n" +
+                "    <div class=\"column goals\"></div>\n" +
+                "    <div class=\"column programs\"></div>\n" +
+                "    <div class=\"column projects\">OLA by Solutions organization for Managed Team and Fixed Project delivery and support</div>\n" +
+                "    <div class=\"column objectives\">+</div>\n" +
+                "    <div class=\"column outcome\">+</div>\n" +
+                "    <div class=\"column outcome\">Someone else</div>\n" +
+                "    <div class=\"column deadline\">31.05.2017<br />31.05.2017<br />31.05.2017<br />31.05.2017<br /></div>\n" +
+                "    <div class=\"column missed\">24.03.2017</div>\n" +
+                "    <div class=\"column actions\">Do something!</div>\n" +
+                "  </div>");
+
+        builder.append("</div>\n" +
+                "</div>");
+
+        return builder.toString();
+    }
+
+    String generateTableWithDivs() {
+        StringBuilder builder = new StringBuilder();
+
+        PageManager pageManager = (PageManager) ContainerManager.getComponent("pageManager");
+
+        Space TEST_SPACE = spaceManager.getSpace(SPACE_KEY);
+
+        List<Page> PagesInTestSpace = pageManager.getPages(TEST_SPACE, false);
+
+        Label goal = new Label("goal");
+        Label program = new Label("program");
+
+        List<Page> goalPages = new ArrayList<Page>();
+        List<Page> programPages = new ArrayList<Page>();
+        for (Page page : PagesInTestSpace) {
+
+            if (page.getLabels().contains(goal)) {
+                goalPages.add(page);
+            }
+            if (page.getLabels().contains(program)) {
+                programPages.add(page);
+            }
+
+        }
+
+        HashMap<String, Page> titleToProgram = new LinkedHashMap<String, Page>();
+        for (Page programPage : programPages) {
+            titleToProgram.put(programPage.getTitle(), programPage);
+        }
+
+        builder.append("<div class=\"container-fluid\" style=\"margin-top: 10px\">\n" +
+                "  <div class=\"macro-table\">");
+        builder.append("<div class=\"macro-table-row header\">\n" +
+                "    <div class=\"macro-column goals\">Goals</div>\n" +
+                "    <div class=\"macro-column programs\">Programs</div>\n" +
+                "    <div class=\"macro-column projects\">Projects</div>\n" +
+                "    <div class=\"macro-column objectives\">Objectives</div>\n" +
+                "    <div class=\"macro-column outcome\">Outcome</div>\n" +
+                "    <div class=\"macro-column outcome\">Owner</div>\n" +
+                "    <div class=\"macro-column deadline\">Deadline</div>\n" +
+                "    <div class=\"macro-column missed\">Missed deadlines</div>\n" +
+                "    <div class=\"macro-column actions\">Dependency and Actions</div>\n" +
+                "  </div>");
+        for (Page goalIterator : goalPages) {
+            builder.append("<div class=\"macro-table-row\">\n" +
+                    "    <div class=\"macro-column goals\"> " + goalIterator.getTitle() + " </div>\n" +
+                    "    <div class=\"macro-column programs\"></div>\n" +
+                    "    <div class=\"macro-column projects\"></div>\n" +
+                    "    <div class=\"macro-column objectives\"></div>\n" +
+                    "    <div class=\"macro-column outcome\"></div>\n" +
+                    "    <div class=\"macro-column outcome\"></div>\n" +
+                    "    <div class=\"macro-column deadline\"></div>\n" +
+                    "    <div class=\"macro-column missed\"></div>\n" +
+                    "    <div class=\"macro-column actions\"></div>\n" +
+                    "  </div>");
+            String content = goalIterator.getBodyContents().get(0).getContent().getBodyAsString();
+            List<String> programsForGoal = parser.findProgramsForGoal(content);
+            //Draw table for only existing programs for goal
+            if (!programsForGoal.isEmpty()) {
+                for (String programTitleIterator : programsForGoal) {
+
+                    builder.append("<div class=\"macro-table-row\">\n" +
+                            "    <div class=\"macro-column goals\"></div>\n" +
+                            "    <div class=\"macro-column programs\"> " + programTitleIterator + "</div>\n" +
+                            "    <div class=\"macro-column projects\"></div>\n" +
+                            "    <div class=\"macro-column objectives\"></div>\n" +
+                            "    <div class=\"macro-column outcome\"></div>\n" +
+                            "    <div class=\"macro-column outcome\"></div>\n" +
+                            "    <div class=\"macro-column deadline\"></div>\n" +
+                            "    <div class=\"macro-column missed\"></div>\n" +
+                            "    <div class=\"macro-column actions\"></div>\n" +
+                            "  </div>");
+
+                    Page programPage = titleToProgram.get(programTitleIterator);
+                    List<String> projectTitlesForProgram = parser.findProjectsForProgram(programPage.getBodyContents().get(0).getContent().getBodyAsString());
+                    System.out.println("Project titles for program: " + projectTitlesForProgram);
+                    //Draw table for only existing projects for Program
+                    if (!projectTitlesForProgram.isEmpty()) {
+                        for (String projectTitleForProgramIterator : projectTitlesForProgram) {
+                            builder.append(" <div class=\"macro-table-row\">\n" +
+                                    "    <div class=\"macro-column goals\"></div>\n" +
+                                    "    <div class=\"macro-column programs\"></div>\n" +
+                                    "    <div class=\"macro-column projects\">" + projectTitleForProgramIterator + "</div>\n" +
+                                    "    <div class=\"macro-column objectives\">+</div>\n" +
+                                    "    <div class=\"macro-column outcome\">+</div>\n" +
+                                    "    <div class=\"macro-column outcome\">Someone else</div>\n" +
+                                    "    <div class=\"macro-column deadline\">31.05.2017<br />31.05.2017<br />31.05.2017<br />31.05.2017<br /></div>\n" +
+                                    "    <div class=\"macro-column missed\">24.03.2017</div>\n" +
+                                    "    <div class=\"macro-column actions\">Do something!</div>\n" +
+                                    "  </div>");
+                        }
+                    } else {
+//                        builder.append("<tr>");
+//                        builder.append("<td>" + goalIterator.getTitle() + "</td>");
+//                        builder.append("<td>" + programTitleIterator + "</td>");
+//                        builder.append("<td>" + "</td>");
+//                        builder.append("</tr>");
+                    }
+                }
+            }
+        }
+
+        builder.append("</div>\n" +
+                "</div>");
+
+        return builder.toString();
     }
 }
