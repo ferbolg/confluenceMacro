@@ -162,4 +162,20 @@ public class MacroXPathParser {
         System.out.println(projectNames);
         return projectNames;
     }
+
+    public List<Project> parseDataForProgram(String contents) {
+        TagNode tagNode = new HtmlCleaner().clean(contents);
+        TagNode[] tds = tagNode.getElementsByName("td",true);
+        BaseToken baseToken = tds[1].getAllChildren().get(0);
+        String[] projectTitles = tds[1].getAllChildren().get(0).toString().split(",");
+        String[] projectOwners = tds[3].getAllChildren().get(0).toString().split(",");
+        String[] projectDeadlines = tds[5].getAllChildren().get(0).toString().split(",");
+        List<Project> projects = new ArrayList<Project>();
+        for (int i=0; i < projectTitles.length;i++){
+            projects.add(new Project(projectOwners[i], projectDeadlines[i],projectTitles[i]));
+        }
+
+        return projects;
+
+    }
 }
