@@ -165,17 +165,118 @@ public class MacroXPathParser {
 
     public List<Project> parseDataForProgram(String contents) {
         TagNode tagNode = new HtmlCleaner().clean(contents);
-        TagNode[] tds = tagNode.getElementsByName("td",true);
+        TagNode[] tds = tagNode.getElementsByName("td", true);
         BaseToken baseToken = tds[1].getAllChildren().get(0);
         String[] projectTitles = tds[1].getAllChildren().get(0).toString().split(",");
         String[] projectOwners = tds[3].getAllChildren().get(0).toString().split(",");
         String[] projectDeadlines = tds[5].getAllChildren().get(0).toString().split(",");
         List<Project> projects = new ArrayList<Project>();
-        for (int i=0; i < projectTitles.length;i++){
-            projects.add(new Project(projectOwners[i], projectDeadlines[i],projectTitles[i]));
+        for (int i = 0; i < projectTitles.length; i++) {
+            projects.add(new Project(projectOwners[i], projectDeadlines[i], projectTitles[i]));
         }
 
         return projects;
+
+    }
+
+    public List<Project> parseDataForProject(String contents) {
+        TagNode tagNode = new HtmlCleaner().clean(contents);
+        TagNode[] tds = tagNode.getElementsByName("td", true);
+
+        //Get Objectives
+        String objectives = tds[0].getAllChildren().get(0).toString();
+        //Get outcomes
+        String outcomes = tds[1].getAllChildren().get(0).toString();
+        //Owner
+        String owners = tds[2].getAllChildren().get(0).toString();
+        //Deadline
+        String deadlines = tds[3].getAllChildren().get(0).toString();
+        //Missed deadline
+        String missedDeadlines = tds[4].getAllChildren().get(0).toString();
+
+
+        String[] projectTitles = tds[1].getAllChildren().get(0).toString().split(",");
+        String[] projectOwners = tds[3].getAllChildren().get(0).toString().split(",");
+        String[] projectDeadlines = tds[5].getAllChildren().get(0).toString().split(",");
+        List<Project> projects = new ArrayList<Project>();
+        for (int i = 0; i < projectTitles.length; i++) {
+            projects.add(new Project(projectOwners[i], projectDeadlines[i], projectTitles[i]));
+        }
+
+        return projects;
+
+    }
+
+    public Goal parseDataForGoal(String contents) {
+        TagNode tagNode = new HtmlCleaner().clean(contents);
+        TagNode[] tds = tagNode.getElementsByName("td", true);
+
+        //Get Objectives
+        String title = tds[0].getAllChildren().get(0).toString();
+        //Get outcomes
+        String objectives = tds[1].getAllChildren().get(0).toString();
+        //Owner
+        String outcome = tds[2].getAllChildren().get(0).toString();
+        //Deadline
+        String owner = tds[3].getAllChildren().get(0).toString();
+        //Missed deadline
+        String deadline = tds[4].getAllChildren().get(0).toString();
+        //Missed deadline
+        String missedDeadline = tds[5].getAllChildren().get(0).toString();
+
+        String dependencyAndAction = tds[6].getAllChildren().get(0).toString();
+        Goal goal = new Goal(title, objectives, outcome, owner, deadline, missedDeadline, dependencyAndAction);
+        return goal;
+
+    }
+
+    public Program parseDataForExtendedProgram(String contents) {
+        TagNode tagNode = new HtmlCleaner().clean(contents);
+        TagNode[] tds = tagNode.getElementsByName("td", true);
+
+
+        String title = tds[0].getAllChildren().get(0).toString();
+
+        String objectives = tds[1].getAllChildren().get(0).toString();
+
+        String outcome = tds[2].getAllChildren().get(0).toString();
+
+        String owner = tds[3].getAllChildren().get(0).toString();
+
+        String deadline = tds[4].getAllChildren().get(0).toString();
+
+        String missedDeadline = tds[5].getAllChildren().get(0).toString();
+
+        String dependencyAndAction = tds[6].getAllChildren().get(0).toString();
+
+        String linkToGoal = tagNode.getElementsByName("ri:page",true)[0].getAttributeByName("ri:content-title").toString();
+        Program program = new Program(title, objectives, outcome, owner, deadline, missedDeadline, dependencyAndAction,linkToGoal);
+        return program;
+
+    }
+
+    public ExtendedProject parseDataForExtendedProject(String contents) {
+        TagNode tagNode = new HtmlCleaner().clean(contents);
+        TagNode[] tds = tagNode.getElementsByName("td", true);
+
+
+        String title = tds[0].getAllChildren().get(0).toString();
+
+        String objectives = tds[1].getAllChildren().get(0).toString();
+
+        String outcome = tds[2].getAllChildren().get(0).toString();
+
+        String owner = tds[3].getAllChildren().get(0).toString();
+
+        String deadline = tds[4].getAllChildren().get(0).toString();
+
+        String missedDeadline = tds[5].getAllChildren().get(0).toString();
+
+        String dependencyAndAction = tds[6].getAllChildren().get(0).toString();
+
+        String linkToProgram = tagNode.getElementsByName("ri:page",true)[0].getAttributeByName("ri:content-title").toString();
+        ExtendedProject project = new ExtendedProject(title, objectives, outcome, owner, deadline, missedDeadline, dependencyAndAction,linkToProgram);
+        return project;
 
     }
 }

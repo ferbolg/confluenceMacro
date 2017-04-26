@@ -22,7 +22,7 @@ public class helloworld implements Macro {
 
     private PageBuilderService pageBuilderService;
     private SpaceManager spaceManager;
-    private final String SPACE_KEY = "GOAL";
+    private final String SPACE_KEY = "PROG";
     private MacroXPathParser parser = new MacroXPathParser();
 
     @Autowired
@@ -38,43 +38,9 @@ public class helloworld implements Macro {
 
       //  return generateTableWithDivs();
 
-        return generateTableWithDivsFull();
+      //  return generateTableWithDivsFull();
 
-//        PageManager pageManager = (PageManager) ContainerManager.getComponent("pageManager");
-//
-//        Space TEST_SPACE = spaceManager.getSpace(SPACE_KEY);
-//
-//        List<Page> PagesInTestSpace = pageManager.getPages(TEST_SPACE, false);
-//
-//        Label goal = new Label("goal");
-//        Label program = new Label("program");
-//
-//        List<Page> goalPages = new ArrayList<Page>();
-//        List<Page> programPages = new ArrayList<Page>();
-//        for (Page page : PagesInTestSpace) {
-//
-//            if (page.getLabels().contains(goal)) {
-//                goalPages.add(page);
-//            }
-//            if (page.getLabels().contains(program)) {
-//                programPages.add(page);
-//            }
-//
-//        }
-//
-//        HashMap<String, Page> titleToProgram = new LinkedHashMap<String, Page>();
-//        for (Page programPage : programPages) {
-//            titleToProgram.put(programPage.getTitle(), programPage);
-//        }
-//
-//        Page program2 = titleToProgram.get("Program: Technology Strategy");
-//        String program2content = program2.getBodyContents().get(0).getContent().getBodyAsString();
-//        String result = parser.parseWithCleaner(program2content, "//table//tbody/tr");
-//        parser.parseDataForProgram(program2content);
-//
-//        List<Project> projects = parser.parseDataForProgram(program2content);
-//        System.out.println(projects);
-//        return projects.toString();
+        return checkStructure();
     }
 
     public BodyType getBodyType() {
@@ -212,7 +178,7 @@ public class helloworld implements Macro {
         return builder.toString();
     }
 
-    String generateTableWithDivs() {
+    public String generateTableWithDivs() {
         StringBuilder builder = new StringBuilder();
 
         PageManager pageManager = (PageManager) ContainerManager.getComponent("pageManager");
@@ -427,5 +393,59 @@ public class helloworld implements Macro {
                 "</div>");
 
         return builder.toString();
+    }
+
+    public String checkStructure(){
+        PageManager pageManager = (PageManager) ContainerManager.getComponent("pageManager");
+
+        Space TEST_SPACE = spaceManager.getSpace(SPACE_KEY);
+
+        List<Page> PagesInTestSpace = pageManager.getPages(TEST_SPACE, false);
+
+        Label goal = new Label("goal");
+        Label program = new Label("program");
+        Label project = new Label("project");
+
+        List<Page> goalPages = new ArrayList<Page>();
+        List<Page> programPages = new ArrayList<Page>();
+        List<Page> projectPages = new ArrayList<Page>();
+        for (Page page : PagesInTestSpace) {
+
+            if (page.getLabels().contains(goal)) {
+                goalPages.add(page);
+            }
+            if (page.getLabels().contains(program)) {
+                programPages.add(page);
+            }
+            if (page.getLabels().contains(project)) {
+                projectPages.add(page);
+            }
+
+        }
+
+        HashMap<String, Page> titleToProgram = new LinkedHashMap<String, Page>();
+        for (Page programPage : programPages) {
+            titleToProgram.put(programPage.getTitle(), programPage);
+        }
+
+    
+//        Page goalPage = goalPages.get(0);
+//
+//        String content = goalPage.getBodyContents().get(0).getContent().getBodyAsString();
+//
+//        Goal goalObject = parser.parseDataForGoal(content);
+
+//        Page programPage = programPages.get(0);
+//
+//        String content = programPage.getBodyContents().get(0).getContent().getBodyAsString();
+//
+//        Program programObject = parser.parseDataForExtendedProgram(content);
+
+        Page projectPage = projectPages.get(0);
+
+        String content = projectPage.getBodyContents().get(0).getContent().getBodyAsString();
+
+        ExtendedProject projectObject = parser.parseDataForExtendedProject(content);
+        return projectObject.toString();
     }
 }
